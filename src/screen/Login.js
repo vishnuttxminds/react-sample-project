@@ -10,25 +10,83 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../auth/AuthContext";
+import { loginApi } from "../auth/authApi";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [errors, setErrors] = useState({
+    username: "",
+    password: "",
+  });
 
   const navigate = useNavigate();
-
   const { loginFun } = useContext(AuthContext);
 
-  const handleLogin = () => {
-    loginFun();
-    navigate("/home");
+  // 🔍 Validation helpers
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const validate = () => {
+    let temp = { username: "", password: "" };
+    let isValid = true;
+
+    if (!username.trim()) {
+      temp.username = "Username is required";
+      isValid = false;
+    } else if (!isValidEmail(username)) {
+      temp.username = "Enter a valid email address";
+      isValid = false;
+    }
+
+    if (!password.trim()) {
+      temp.password = "Password is required";
+      isValid = false;
+    } else if (password.length < 6) {
+      temp.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+
+    setErrors(temp);
+    return isValid;
+  };
+
+  const handleLogin = async () => {
+    if (!validate()) return;
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        phone_number: "+917012429389",
+        device_token: ["web-test-token"],
+        device_id: "web-browser-001",
+      };
+
+      const response = await loginApi(payload);
+      const token = response.data?.access_token;
+
+      if (!token) {
+        setErrors({ ...errors, password: "Invalid login response" });
+        return;
+      }
+
+      loginFun(token);
+      navigate("/home");
+    } catch (error) {
+      alert(error.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Grid container minHeight="100vh">
-      {/* LEFT IMAGE SECTION */}
       <Grid
         item
         xs={12}
@@ -66,7 +124,6 @@ const Login = () => {
         </Box>
       </Grid>
 
-      {/* RIGHT LOGIN FORM */}
       <Grid
         item
         xs={12}
@@ -86,25 +143,27 @@ const Login = () => {
 
           <TextField
             label="Username"
-            required
             fullWidth
             margin="normal"
-            defaultValue="admin@xminds.com"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            error={Boolean(errors.username)}
+            helperText={errors.username}
           />
 
           <TextField
             label="Password"
-            required
             fullWidth
             margin="normal"
             type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={Boolean(errors.password)}
+            helperText={errors.password}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                  >
+                  <IconButton onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
@@ -116,15 +175,11 @@ const Login = () => {
             fullWidth
             size="large"
             variant="contained"
-            sx={{
-              mt: 4,
-              py: 1.5,
-              textTransform: "none",
-              fontSize: "16px",
-            }}
+            sx={{ mt: 4, py: 1.5 }}
             onClick={handleLogin}
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </Button>
         </Box>
       </Grid>
