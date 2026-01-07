@@ -63,7 +63,7 @@ export default function Sidebar() {
           <ListItemIcon sx={{ color: "#fff" }}>
             <SportsSoccerIcon />
           </ListItemIcon>
-          <ListItemText primary="Sports" />
+          <ListItemText primary="Add Product" />
         </ListItem>
       </List>
     </Drawer>

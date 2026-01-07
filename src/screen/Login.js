@@ -17,10 +17,10 @@ import { loginApi } from "../auth/authApi";
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-
+  const [credentials, setCredentials] = useState({
+    username: "",
+    password: "",
+  });
   const [errors, setErrors] = useState({
     username: "",
     password: "",
@@ -28,26 +28,24 @@ const Login = () => {
 
   const navigate = useNavigate();
   const { loginFun } = useContext(AuthContext);
-
-  // 🔍 Validation helpers
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const validate = () => {
     let temp = { username: "", password: "" };
     let isValid = true;
 
-    if (!username.trim()) {
+    if (!credentials.username.trim()) {
       temp.username = "Username is required";
       isValid = false;
-    } else if (!isValidEmail(username)) {
+    } else if (!isValidEmail(credentials.username)) {
       temp.username = "Enter a valid email address";
       isValid = false;
     }
 
-    if (!password.trim()) {
+    if (!credentials.password.trim()) {
       temp.password = "Password is required";
       isValid = false;
-    } else if (password.length < 6) {
+    } else if (credentials.password.length < 6) {
       temp.password = "Password must be at least 6 characters";
       isValid = false;
     }
@@ -123,7 +121,33 @@ const Login = () => {
           </Typography>
         </Box>
       </Grid>
-
+      <Grid
+        item
+        xs={12}
+        md={6}
+        sx={{
+          width: "35%",
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1517649763962-0c623066013b')",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          display: { xs: "none", md: "block" },
+        }}
+      >
+        <Box
+          sx={{
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            p: 4,
+            color: "#fff",
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0))",
+          }}
+        ></Box>
+      </Grid>
       <Grid
         item
         xs={12}
@@ -145,8 +169,10 @@ const Login = () => {
             label="Username"
             fullWidth
             margin="normal"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={credentials.username}
+            onChange={(e) =>
+              setCredentials({ ...credentials, username: e.target.value })
+            }
             error={Boolean(errors.username)}
             helperText={errors.username}
           />
@@ -156,8 +182,10 @@ const Login = () => {
             fullWidth
             margin="normal"
             type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={credentials.password}
+            onChange={(e) =>
+              setCredentials({ ...credentials, password: e.target.value })
+            }
             error={Boolean(errors.password)}
             helperText={errors.password}
             InputProps={{
